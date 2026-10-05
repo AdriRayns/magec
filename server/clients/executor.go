@@ -128,7 +128,7 @@ func (e *Executor) callAgent(ctx context.Context, agentID, prompt, token string,
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	callCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
+	callCtx, cancel := context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(callCtx, "POST", e.agentURL+"/run_sse", bytes.NewReader(jsonBody))
