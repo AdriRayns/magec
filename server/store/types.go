@@ -502,6 +502,10 @@ type Settings struct {
 	// temporary directory via Store.ResolveTemporaryDir, which is the only
 	// place that performs that fallback.
 	TemporaryDir string `json:"temporaryDir,omitempty" yaml:"temporaryDir,omitempty"`
+	// SSEWriteTimeoutMinutes is the Server-Sent Events write timeout in minutes.
+	// 0 means use default (15 minutes). This setting controls how long the
+	// server will wait for the client to read SSE data before timing out.
+	SSEWriteTimeoutMinutes int `json:"sseWriteTimeoutMinutes,omitempty" yaml:"sseWriteTimeoutMinutes,omitempty"`
 	// Flows holds global settings for the Starlark code-node feature.
 	Flows FlowsSettings `json:"flows" yaml:"flows"`
 }
