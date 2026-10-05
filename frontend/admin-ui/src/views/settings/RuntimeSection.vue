@@ -29,7 +29,7 @@
             />
           </div>
 
-          <div class="pt-4 border-t border-piedra-800">
+          <div class="pt-4">
             <h4 class="text-[13px] font-medium text-arena-100">SSE Write Timeout</h4>
             <p class="text-xs text-arena-500 mt-0.5">
               Server-Sent Events write timeout in minutes. Higher values allow longer-running requests with slow models.
