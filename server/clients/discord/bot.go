@@ -792,7 +792,11 @@ func (c *Client) callAgentSSE(m *discordgo.MessageCreate, targetID, agentID, ses
 		return fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Minute)
+	timeoutMinutes := 15
+	if c.clientDef.Config.Discord != nil && c.clientDef.Config.Discord.SSEClientTimeoutMinutes > 0 {
+		timeoutMinutes = c.clientDef.Config.Discord.SSEClientTimeoutMinutes
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutMinutes)*time.Minute)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "POST", c.agentURL+"/run_sse", bytes.NewReader(jsonBody))
