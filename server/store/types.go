@@ -160,11 +160,12 @@ type ClientConfig struct {
 
 // TelegramClientConfig holds Telegram bot settings for a client.
 type TelegramClientConfig struct {
-	BotToken     string  `json:"botToken,omitempty" yaml:"botToken,omitempty"`
-	AllowedUsers []int64 `json:"allowedUsers,omitempty" yaml:"allowedUsers,omitempty"`
-	AllowedChats []int64 `json:"allowedChats,omitempty" yaml:"allowedChats,omitempty"`
-	ResponseMode string  `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
-	DefaultAgent string  `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
+	BotToken              string  `json:"botToken,omitempty" yaml:"botToken,omitempty"`
+	AllowedUsers          []int64 `json:"allowedUsers,omitempty" yaml:"allowedUsers,omitempty"`
+	AllowedChats          []int64 `json:"allowedChats,omitempty" yaml:"allowedChats,omitempty"`
+	ResponseMode          string  `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
+	DefaultAgent          string  `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
+	SSEClientTimeoutMinutes int `json:"sseClientTimeoutMinutes,omitempty" yaml:"sseClientTimeoutMinutes,omitempty"`
 }
 
 // DiscordClientConfig holds Discord bot settings for a client.
