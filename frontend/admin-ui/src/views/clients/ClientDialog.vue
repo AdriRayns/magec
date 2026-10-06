@@ -302,7 +302,7 @@ const visibleProperties = computed(() => {
 })
 
 const PERMISSION_KEYS = new Set(['allowedUsers', 'allowedChannels', 'allowedChats'])
-const OPTION_KEYS = new Set(['responseMode', 'threadHistoryLimit'])
+const OPTION_KEYS = new Set(['responseMode', 'threadHistoryLimit', 'sseClientTimeoutMinutes'])
 
 const mainProperties = computed(() =>
   Object.fromEntries(Object.entries(visibleProperties.value).filter(([k]) => !PERMISSION_KEYS.has(k) && !OPTION_KEYS.has(k)))
