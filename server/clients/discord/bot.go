@@ -1073,10 +1073,14 @@ func (c *Client) transcribeAudio(wavData []byte, agentID string) (string, error)
 	buf.Write(wavData)
 	buf.WriteString(fmt.Sprintf("\r\n--%s--\r\n", boundary))
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer cancel()
-
 	transcriptionURL := strings.TrimSuffix(c.agentURL, "/agent") + "/voice/" + agentID + "/transcription"
+
+	timeoutSec := 60
+	if c.clientDef.Config.Discord != nil && c.clientDef.Config.Discord.TranscriptionTimeoutSec > 0 {
+		timeoutSec = c.clientDef.Config.Discord.TranscriptionTimeoutSec
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSec)*time.Second)
+	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "POST", transcriptionURL, &buf)
 	if err != nil {

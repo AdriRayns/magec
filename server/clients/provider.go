@@ -44,14 +44,14 @@ func ThreadHistoryLimitSchema(max int) Schema {
 	}
 }
 
-// SSEClientTimeoutSchema returns the shared JSON Schema fragment for the
-// sseClientTimeoutMinutes field.
-func SSEClientTimeoutSchema() Schema {
+// TranscriptionTimeoutSchema returns the shared JSON Schema fragment for the
+// transcriptionTimeoutSeconds field.
+func TranscriptionTimeoutSchema() Schema {
 	return Schema{
 		"type":        "integer",
-		"title":       "SSE Client Timeout",
-		"description": "Maximum time the client will wait for a response from the SSE server before cancelling the request. Increase for long-running tasks.",
-		"default":     15,
+		"title":       "Transcription Timeout",
+		"description": "Maximum time to wait for audio transcription before cancelling the request. Increase for long audio files or slow STT backends.",
+		"default":     60,
 		"minimum":     1,
 	}
 }
