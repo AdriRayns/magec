@@ -295,14 +295,8 @@ func New(ctx context.Context, agents []store.AgentDefinition, backends []store.B
 		AgentLoader:     loader,
 		ArtifactService: artifactSvc,
 		MemoryService:   memorySvc,
+		SSEWriteTimeout: 15 * time.Minute,
 	}
-
-	// Determine SSE write timeout from settings, defaulting to 15 minutes
-	sseTimeoutMinutes := settings.SSEWriteTimeoutMinutes
-	if sseTimeoutMinutes <= 0 {
-		sseTimeoutMinutes = 15
-	}
-	restCfg.SSEWriteTimeout = time.Duration(sseTimeoutMinutes) * time.Minute
 
 	if registry != nil {
 		restCfg.PluginConfig = buildContextGuardConfig(agents, llmMap, registry)

@@ -160,37 +160,34 @@ type ClientConfig struct {
 
 // TelegramClientConfig holds Telegram bot settings for a client.
 type TelegramClientConfig struct {
-	BotToken                string  `json:"botToken,omitempty" yaml:"botToken,omitempty"`
-	AllowedUsers            []int64 `json:"allowedUsers,omitempty" yaml:"allowedUsers,omitempty"`
-	AllowedChats            []int64 `json:"allowedChats,omitempty" yaml:"allowedChats,omitempty"`
-	ResponseMode            string  `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
-	DefaultAgent            string  `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
-	TranscriptionTimeoutSec int     `json:"transcriptionTimeoutSeconds,omitempty" yaml:"transcriptionTimeoutSeconds,omitempty"`
+	BotToken     string  `json:"botToken,omitempty" yaml:"botToken,omitempty"`
+	AllowedUsers []int64 `json:"allowedUsers,omitempty" yaml:"allowedUsers,omitempty"`
+	AllowedChats []int64 `json:"allowedChats,omitempty" yaml:"allowedChats,omitempty"`
+	ResponseMode string  `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
+	DefaultAgent string  `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
 }
 
 // DiscordClientConfig holds Discord bot settings for a client.
 // Uses the Discord Gateway (WebSocket) — no public URL needed.
 type DiscordClientConfig struct {
-	BotToken                  string `json:"botToken,omitempty" yaml:"botToken,omitempty"`
-	AllowedUsers              []string `json:"allowedUsers,omitempty" yaml:"allowedUsers,omitempty"`
-	AllowedChannels           []string `json:"allowedChannels,omitempty" yaml:"allowedChannels,omitempty"`
-	ResponseMode              string `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
-	DefaultAgent              string `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
-	ThreadHistoryLimit        int    `json:"threadHistoryLimit,omitempty" yaml:"threadHistoryLimit,omitempty"`
-	TranscriptionTimeoutSec   int    `json:"transcriptionTimeoutSeconds,omitempty" yaml:"transcriptionTimeoutSeconds,omitempty"`
+	BotToken           string   `json:"botToken,omitempty" yaml:"botToken,omitempty"`
+	AllowedUsers       []string `json:"allowedUsers,omitempty" yaml:"allowedUsers,omitempty"`
+	AllowedChannels    []string `json:"allowedChannels,omitempty" yaml:"allowedChannels,omitempty"`
+	ResponseMode       string   `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
+	DefaultAgent       string   `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
+	ThreadHistoryLimit int      `json:"threadHistoryLimit,omitempty" yaml:"threadHistoryLimit,omitempty"`
 }
 
 // SlackClientConfig holds Slack bot settings for a client.
 // Uses Socket Mode (WebSocket) — no public URL needed.
 type SlackClientConfig struct {
-	BotToken                  string `json:"botToken,omitempty" yaml:"botToken,omitempty"`
-	AppToken                  string `json:"appToken,omitempty" yaml:"appToken,omitempty"`
-	AllowedUsers              []string `json:"allowedUsers,omitempty" yaml:"allowedUsers,omitempty"`
-	AllowedChannels           []string `json:"allowedChannels,omitempty" yaml:"allowedChannels,omitempty"`
-	ResponseMode              string `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
-	DefaultAgent              string `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
-	ThreadHistoryLimit        int    `json:"threadHistoryLimit,omitempty" yaml:"threadHistoryLimit,omitempty"`
-	TranscriptionTimeoutSec   int    `json:"transcriptionTimeoutSeconds,omitempty" yaml:"transcriptionTimeoutSeconds,omitempty"`
+	BotToken           string   `json:"botToken,omitempty" yaml:"botToken,omitempty"`
+	AppToken           string   `json:"appToken,omitempty" yaml:"appToken,omitempty"`
+	AllowedUsers       []string `json:"allowedUsers,omitempty" yaml:"allowedUsers,omitempty"`
+	AllowedChannels    []string `json:"allowedChannels,omitempty" yaml:"allowedChannels,omitempty"`
+	ResponseMode       string   `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
+	DefaultAgent       string   `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
+	ThreadHistoryLimit int      `json:"threadHistoryLimit,omitempty" yaml:"threadHistoryLimit,omitempty"`
 }
 
 // CronClientConfig holds settings for a cron-type client.
