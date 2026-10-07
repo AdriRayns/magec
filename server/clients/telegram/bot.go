@@ -828,6 +828,7 @@ func (c *Client) sendTextResponse(ctx *th.Context, chatID int64, threadID int, t
 			ChatID:          tu.ID(chatID),
 			MessageThreadID: threadID,
 			Text:            chunk,
+			ParseMode:       "Markdown",
 		})
 		if err != nil {
 			c.logger.Error("Failed to send message", "error", err)
