@@ -43,3 +43,15 @@ func ThreadHistoryLimitSchema(max int) Schema {
 		"maximum":     max,
 	}
 }
+
+// TranscriptionTimeoutSchema returns the shared JSON Schema fragment for the
+// transcriptionTimeoutSeconds field.
+func TranscriptionTimeoutSchema() Schema {
+	return Schema{
+		"type":        "integer",
+		"title":       "Transcription Timeout",
+		"description": "Maximum time to wait for audio transcription before cancelling the request. Increase for long audio files or slow STT backends.",
+		"default":     60,
+		"minimum":     1,
+	}
+}

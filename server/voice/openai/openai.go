@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/achetronic/magec/server/store"
 	"github.com/achetronic/magec/server/voice"
@@ -82,7 +81,7 @@ func (p *provider) SynthesizeSpeech(ctx context.Context, req voice.TTSRequest, b
 		httpReq.Header.Set("Authorization", "Bearer "+backend.APIKey)
 	}
 
-	client := &http.Client{Timeout: 60 * time.Second}
+	client := &http.Client{}
 	resp, err := client.Do(httpReq)
 	if err != nil {
 		return nil, fmt.Errorf("TTS request failed: %w", err)
@@ -149,7 +148,7 @@ func (p *provider) TranscribeAudio(ctx context.Context, req voice.STTRequest, ba
 		httpReq.Header.Set("Authorization", "Bearer "+backend.APIKey)
 	}
 
-	client := &http.Client{Timeout: 60 * time.Second}
+	client := &http.Client{}
 	resp, err := client.Do(httpReq)
 	if err != nil {
 		return "", fmt.Errorf("STT request failed: %w", err)

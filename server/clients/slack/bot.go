@@ -1026,7 +1026,11 @@ func (c *Client) transcribeAudio(wavData []byte, agentID string) (string, error)
 	buf.Write(wavData)
 	buf.WriteString(fmt.Sprintf("\r\n--%s--\r\n", boundary))
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	timeoutSec := 60
+	if c.clientDef.Config.Slack != nil && c.clientDef.Config.Slack.TranscriptionTimeoutSec > 0 {
+		timeoutSec = c.clientDef.Config.Slack.TranscriptionTimeoutSec
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSec)*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "POST",

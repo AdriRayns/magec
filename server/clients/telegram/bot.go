@@ -1188,7 +1188,11 @@ func (c *Client) transcribeAudio(audioData []byte, filePath string, agentID stri
 
 	transcriptionURL := strings.TrimSuffix(c.agentURL, "/agent") + "/voice/" + agentID + "/transcription"
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	timeoutSec := 60
+	if c.clientDef.Config.Telegram != nil && c.clientDef.Config.Telegram.TranscriptionTimeoutSec > 0 {
+		timeoutSec = c.clientDef.Config.Telegram.TranscriptionTimeoutSec
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSec)*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "POST", transcriptionURL, &buf)

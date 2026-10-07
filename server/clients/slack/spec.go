@@ -54,6 +54,7 @@ func (p *Provider) ConfigSchema() clients.Schema {
 			},
 			"defaultAgent":       clients.DefaultAgentSchema(),
 			"threadHistoryLimit": clients.ThreadHistoryLimitSchema(1000),
+			"transcriptionTimeoutSeconds": clients.TranscriptionTimeoutSchema(),
 		},
 		"required": []string{"botToken", "appToken"},
 	}
