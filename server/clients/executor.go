@@ -40,6 +40,7 @@ func NewExecutor(s *store.Store, agentURL string, logger *slog.Logger) *Executor
 func (e *Executor) RunClient(ctx context.Context, cl store.ClientDefinition, passthroughPrompt string) (string, error) {
 	var prompt string
 	var commandID string
+	var timeoutMinutes int
 
 	switch cl.Type {
 	case "cron":
@@ -47,6 +48,7 @@ func (e *Executor) RunClient(ctx context.Context, cl store.ClientDefinition, pas
 			return "", fmt.Errorf("client %q: missing cron config", cl.Name)
 		}
 		commandID = cl.Config.Cron.CommandID
+		timeoutMinutes = cl.Config.Cron.SSEClientTimeoutMinutes
 	case "webhook":
 		if cl.Config.Webhook == nil {
 			return "", fmt.Errorf("client %q: missing webhook config", cl.Name)
@@ -59,8 +61,13 @@ func (e *Executor) RunClient(ctx context.Context, cl store.ClientDefinition, pas
 		} else {
 			commandID = cl.Config.Webhook.CommandID
 		}
+		timeoutMinutes = cl.Config.Webhook.SSEClientTimeoutMinutes
 	default:
 		return "", fmt.Errorf("client %q: unsupported type %q for execution", cl.Name, cl.Type)
+	}
+
+	if timeoutMinutes <= 0 {
+		timeoutMinutes = 15
 	}
 
 	if commandID != "" {
@@ -83,7 +90,7 @@ func (e *Executor) RunClient(ctx context.Context, cl store.ClientDefinition, pas
 			// Node.Name() == event.Author, so they filter events directly.
 			responseFilter = flow.ResponseAgentNames()
 		}
-		result, err := e.callAgent(ctx, agentID, prompt, cl.Token, responseFilter)
+		result, err := e.callAgent(ctx, agentID, prompt, cl.Token, responseFilter, timeoutMinutes)
 		if err != nil {
 			e.logger.Error("Failed to run agent", "client", cl.Name, "agent", agentID, "error", err)
 			continue
@@ -103,7 +110,7 @@ func (e *Executor) RunClient(ctx context.Context, cl store.ClientDefinition, pas
 // callAgent sends a prompt to the agent API and returns the response text.
 // responseFilter optionally limits which agent authors are included in the
 // extracted response. When empty, all events are considered.
-func (e *Executor) callAgent(ctx context.Context, agentID, prompt, token string, responseFilter []string) (string, error) {
+func (e *Executor) callAgent(ctx context.Context, agentID, prompt, token string, responseFilter []string, timeoutMinutes int) (string, error) {
 	userID := "trigger"
 	sessionID := uuid.New().String()
 
@@ -128,7 +135,10 @@ func (e *Executor) callAgent(ctx context.Context, agentID, prompt, token string,
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	callCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
+	if timeoutMinutes <= 0 {
+		timeoutMinutes = 15
+	}
+	callCtx, cancel := context.WithTimeout(ctx, time.Duration(timeoutMinutes)*time.Minute)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(callCtx, "POST", e.agentURL+"/run_sse", bytes.NewReader(jsonBody))
