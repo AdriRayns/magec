@@ -47,7 +47,6 @@ func (p *Provider) ConfigSchema() clients.Schema {
 			},
 			"defaultAgent": clients.DefaultAgentSchema(),
 			"sseClientTimeoutMinutes": clients.SSEClientTimeoutSchema(),
-			"transcriptionTimeoutSeconds": clients.TranscriptionTimeoutSchema(),
 		},
 		"required": []string{"botToken"},
 	}

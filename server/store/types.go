@@ -58,6 +58,9 @@ type BackendRef struct {
 	Model   string            `json:"model,omitempty" yaml:"model,omitempty"`
 	Headers map[string]string `json:"headers,omitempty" yaml:"headers,omitempty"`
 	Config  STTConfig         `json:"config,omitempty" yaml:"config,omitempty"`
+	// TimeoutSeconds caps how long a transcription request may take. Only
+	// honoured on the agent's Transcription ref. 0 means the provider default.
+	TimeoutSeconds int `json:"timeoutSeconds,omitempty" yaml:"timeoutSeconds,omitempty"`
 }
 
 // TTSConfig holds provider-specific TTS configuration. Only the field matching
@@ -98,6 +101,9 @@ type TTSRef struct {
 	Model   string    `json:"model,omitempty" yaml:"model,omitempty"`
 	Voice   string    `json:"voice,omitempty" yaml:"voice,omitempty"`
 	Config  TTSConfig `json:"config,omitempty" yaml:"config,omitempty"`
+	// TimeoutSeconds caps how long a speech synthesis request may take.
+	// 0 means the provider default.
+	TimeoutSeconds int `json:"timeoutSeconds,omitempty" yaml:"timeoutSeconds,omitempty"`
 }
 
 // ContextGuardConfig holds per-agent context guard settings.
@@ -166,7 +172,6 @@ type TelegramClientConfig struct {
 	ResponseMode          string  `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
 	DefaultAgent          string  `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
 	SSEClientTimeoutMinutes int `json:"sseClientTimeoutMinutes,omitempty" yaml:"sseClientTimeoutMinutes,omitempty"`
-	TranscriptionTimeoutSec int     `json:"transcriptionTimeoutSeconds,omitempty" yaml:"transcriptionTimeoutSeconds,omitempty"`
 }
 
 // DiscordClientConfig holds Discord bot settings for a client.
@@ -179,7 +184,6 @@ type DiscordClientConfig struct {
 	DefaultAgent          string   `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
 	ThreadHistoryLimit    int      `json:"threadHistoryLimit,omitempty" yaml:"threadHistoryLimit,omitempty"`
 	SSEClientTimeoutMinutes int  `json:"sseClientTimeoutMinutes,omitempty" yaml:"sseClientTimeoutMinutes,omitempty"`
-	TranscriptionTimeoutSec   int    `json:"transcriptionTimeoutSeconds,omitempty" yaml:"transcriptionTimeoutSeconds,omitempty"`
 }
 
 // SlackClientConfig holds Slack bot settings for a client.
@@ -193,7 +197,6 @@ type SlackClientConfig struct {
 	DefaultAgent          string   `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
 	ThreadHistoryLimit    int      `json:"threadHistoryLimit,omitempty" yaml:"threadHistoryLimit,omitempty"`
 	SSEClientTimeoutMinutes int  `json:"sseClientTimeoutMinutes,omitempty" yaml:"sseClientTimeoutMinutes,omitempty"`
-	TranscriptionTimeoutSec   int    `json:"transcriptionTimeoutSeconds,omitempty" yaml:"transcriptionTimeoutSeconds,omitempty"`
 }
 
 // CronClientConfig holds settings for a cron-type client.

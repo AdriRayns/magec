@@ -3,6 +3,8 @@
 
 package clients
 
+import "time"
+
 // Schema is a JSON Schema object represented as a plain map so providers can
 // define arbitrarily complex schemas (oneOf, if/then, etc.) without the
 // framework imposing structural limits.
@@ -56,14 +58,8 @@ func SSEClientTimeoutSchema() Schema {
 	}
 }
 
-// TranscriptionTimeoutSchema returns the shared JSON Schema fragment for the
-// transcriptionTimeoutSeconds field.
-func TranscriptionTimeoutSchema() Schema {
-	return Schema{
-		"type":        "integer",
-		"title":       "Transcription Timeout",
-		"description": "Maximum time to wait for audio transcription before cancelling the request. Increase for long audio files or slow STT backends.",
-		"default":     60,
-		"minimum":     1,
-	}
-}
+// VoiceRequestTimeout bounds a client's call to the magec voice proxies
+// (transcription and speech). The real limit is the agent's STT/TTS timeout,
+// enforced server-side; this is only a safety net and matches the user
+// server's WriteTimeout so the client never gives up before the server does.
+const VoiceRequestTimeout = 15 * time.Minute
