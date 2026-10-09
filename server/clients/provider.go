@@ -3,6 +3,8 @@
 
 package clients
 
+import "time"
+
 // Schema is a JSON Schema object represented as a plain map so providers can
 // define arbitrarily complex schemas (oneOf, if/then, etc.) without the
 // framework imposing structural limits.
@@ -43,3 +45,9 @@ func ThreadHistoryLimitSchema(max int) Schema {
 		"maximum":     max,
 	}
 }
+
+// TranscriptionRequestTimeout bounds a client's call to the magec
+// transcription proxy. The real limit is the agent's transcription timeout,
+// enforced server-side; this is only a safety net and matches the user
+// server's WriteTimeout so the client never gives up before the server does.
+const TranscriptionRequestTimeout = 15 * time.Minute

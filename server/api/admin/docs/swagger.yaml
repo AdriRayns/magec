@@ -222,6 +222,11 @@ definitions:
     type: object
   store.BackendDefinition:
     properties:
+      api:
+        description: |-
+          API selects the wire API for OpenAI-compatible backends: "completions"
+          (default when empty) or "responses". Ignored by other backend types.
+        type: string
       apiKey:
         type: string
       headers:
@@ -249,6 +254,11 @@ definitions:
         type: object
       model:
         type: string
+      timeoutSeconds:
+        description: |-
+          TimeoutSeconds caps how long a transcription request may take. Only
+          honoured on the agent's Transcription ref. 0 means the provider default.
+        type: integer
     type: object
   store.ClientConfig:
     properties:
