@@ -160,40 +160,44 @@ type ClientConfig struct {
 
 // TelegramClientConfig holds Telegram bot settings for a client.
 type TelegramClientConfig struct {
-	BotToken     string  `json:"botToken,omitempty" yaml:"botToken,omitempty"`
-	AllowedUsers []int64 `json:"allowedUsers,omitempty" yaml:"allowedUsers,omitempty"`
-	AllowedChats []int64 `json:"allowedChats,omitempty" yaml:"allowedChats,omitempty"`
-	ResponseMode string  `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
-	DefaultAgent string  `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
+	BotToken              string  `json:"botToken,omitempty" yaml:"botToken,omitempty"`
+	AllowedUsers          []int64 `json:"allowedUsers,omitempty" yaml:"allowedUsers,omitempty"`
+	AllowedChats          []int64 `json:"allowedChats,omitempty" yaml:"allowedChats,omitempty"`
+	ResponseMode          string  `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
+	DefaultAgent          string  `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
+	SSEClientTimeoutMinutes int `json:"sseClientTimeoutMinutes,omitempty" yaml:"sseClientTimeoutMinutes,omitempty"`
 }
 
 // DiscordClientConfig holds Discord bot settings for a client.
 // Uses the Discord Gateway (WebSocket) — no public URL needed.
 type DiscordClientConfig struct {
-	BotToken           string   `json:"botToken,omitempty" yaml:"botToken,omitempty"`
-	AllowedUsers       []string `json:"allowedUsers,omitempty" yaml:"allowedUsers,omitempty"`
-	AllowedChannels    []string `json:"allowedChannels,omitempty" yaml:"allowedChannels,omitempty"`
-	ResponseMode       string   `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
-	DefaultAgent       string   `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
-	ThreadHistoryLimit int      `json:"threadHistoryLimit,omitempty" yaml:"threadHistoryLimit,omitempty"`
+	BotToken              string   `json:"botToken,omitempty" yaml:"botToken,omitempty"`
+	AllowedUsers          []string `json:"allowedUsers,omitempty" yaml:"allowedUsers,omitempty"`
+	AllowedChannels       []string `json:"allowedChannels,omitempty" yaml:"allowedChannels,omitempty"`
+	ResponseMode          string   `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
+	DefaultAgent          string   `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
+	ThreadHistoryLimit    int      `json:"threadHistoryLimit,omitempty" yaml:"threadHistoryLimit,omitempty"`
+	SSEClientTimeoutMinutes int  `json:"sseClientTimeoutMinutes,omitempty" yaml:"sseClientTimeoutMinutes,omitempty"`
 }
 
 // SlackClientConfig holds Slack bot settings for a client.
 // Uses Socket Mode (WebSocket) — no public URL needed.
 type SlackClientConfig struct {
-	BotToken           string   `json:"botToken,omitempty" yaml:"botToken,omitempty"`
-	AppToken           string   `json:"appToken,omitempty" yaml:"appToken,omitempty"`
-	AllowedUsers       []string `json:"allowedUsers,omitempty" yaml:"allowedUsers,omitempty"`
-	AllowedChannels    []string `json:"allowedChannels,omitempty" yaml:"allowedChannels,omitempty"`
-	ResponseMode       string   `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
-	DefaultAgent       string   `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
-	ThreadHistoryLimit int      `json:"threadHistoryLimit,omitempty" yaml:"threadHistoryLimit,omitempty"`
+	BotToken              string   `json:"botToken,omitempty" yaml:"botToken,omitempty"`
+	AppToken              string   `json:"appToken,omitempty" yaml:"appToken,omitempty"`
+	AllowedUsers          []string `json:"allowedUsers,omitempty" yaml:"allowedUsers,omitempty"`
+	AllowedChannels       []string `json:"allowedChannels,omitempty" yaml:"allowedChannels,omitempty"`
+	ResponseMode          string   `json:"responseMode,omitempty" yaml:"responseMode,omitempty"`
+	DefaultAgent          string   `json:"defaultAgent,omitempty" yaml:"defaultAgent,omitempty"`
+	ThreadHistoryLimit    int      `json:"threadHistoryLimit,omitempty" yaml:"threadHistoryLimit,omitempty"`
+	SSEClientTimeoutMinutes int  `json:"sseClientTimeoutMinutes,omitempty" yaml:"sseClientTimeoutMinutes,omitempty"`
 }
 
 // CronClientConfig holds settings for a cron-type client.
 type CronClientConfig struct {
 	Schedule  string `json:"schedule" yaml:"schedule"`
 	CommandID string `json:"commandId" yaml:"commandId"`
+	SSEClientTimeoutMinutes int `json:"sseClientTimeoutMinutes,omitempty" yaml:"sseClientTimeoutMinutes,omitempty"`
 }
 
 // WebhookClientConfig holds settings for a webhook-type client.
@@ -203,6 +207,7 @@ type CronClientConfig struct {
 type WebhookClientConfig struct {
 	Passthrough bool   `json:"passthrough" yaml:"passthrough"`
 	CommandID   string `json:"commandId,omitempty" yaml:"commandId,omitempty"`
+	SSEClientTimeoutMinutes int `json:"sseClientTimeoutMinutes,omitempty" yaml:"sseClientTimeoutMinutes,omitempty"`
 }
 
 // Skill is the persistent identity of an Agent Skill. The store keeps the
@@ -502,6 +507,10 @@ type Settings struct {
 	// temporary directory via Store.ResolveTemporaryDir, which is the only
 	// place that performs that fallback.
 	TemporaryDir string `json:"temporaryDir,omitempty" yaml:"temporaryDir,omitempty"`
+	// SSEWriteTimeoutMinutes is the Server-Sent Events write timeout in minutes.
+	// 0 means use default (15 minutes). This setting controls how long the
+	// server will wait for the client to read SSE data before timing out.
+	SSEWriteTimeoutMinutes int `json:"sseWriteTimeoutMinutes,omitempty" yaml:"sseWriteTimeoutMinutes,omitempty"`
 	// Flows holds global settings for the Starlark code-node feature.
 	Flows FlowsSettings `json:"flows" yaml:"flows"`
 }

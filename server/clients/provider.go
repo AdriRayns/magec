@@ -43,3 +43,15 @@ func ThreadHistoryLimitSchema(max int) Schema {
 		"maximum":     max,
 	}
 }
+
+// SSEClientTimeoutSchema returns the shared JSON Schema fragment for the
+// sseClientTimeoutMinutes field.
+func SSEClientTimeoutSchema() Schema {
+	return Schema{
+		"type":        "integer",
+		"title":       "SSE Client Timeout",
+		"description": "Maximum time the client will wait for a response from the SSE server before cancelling the request. Increase for long-running tasks.",
+		"default":     15,
+		"minimum":     1,
+	}
+}
