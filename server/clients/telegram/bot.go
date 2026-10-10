@@ -822,13 +822,13 @@ func (c *Client) sendTextResponse(ctx *th.Context, chatID int64, threadID int, t
 		}
 	}
 
-	chunks := msgutil.SplitMessage(text, msgutil.TelegramMaxMessageLength)
+	chunks := msgutil.MarkdownToTelegramHTML(text, msgutil.TelegramMaxMessageLength)
 	for _, chunk := range chunks {
 		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 			ChatID:          tu.ID(chatID),
 			MessageThreadID: threadID,
 			Text:            chunk,
-			ParseMode:       "Markdown",
+			ParseMode:       "HTML",
 		})
 		if err != nil {
 			c.logger.Error("Failed to send message", "error", err)
