@@ -823,14 +823,24 @@ func (c *Client) sendTextResponse(ctx *th.Context, chatID int64, threadID int, t
 		}
 	}
 
-	chunks := msgutil.SplitMessage(text, msgutil.TelegramMaxMessageLength)
+	chunks := msgutil.MarkdownToTelegramHTML(text, msgutil.TelegramMaxMessageLength)
 	for _, chunk := range chunks {
 		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 			ChatID:          tu.ID(chatID),
 			MessageThreadID: threadID,
 			Text:            chunk,
-			ParseMode:       "Markdown",
+			ParseMode:       "HTML",
 		})
+		if err != nil && strings.Contains(err.Error(), "can't parse entities") {
+			// Formatting was rejected: deliver the same chunk as plain text
+			// rather than dropping it.
+			c.logger.Warn("Telegram rejected formatting, sending as plain text", "error", err)
+			_, err = ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+				ChatID:          tu.ID(chatID),
+				MessageThreadID: threadID,
+				Text:            msgutil.TelegramHTMLToPlain(chunk),
+			})
+		}
 		if err != nil {
 			c.logger.Error("Failed to send message", "error", err)
 			break
