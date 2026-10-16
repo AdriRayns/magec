@@ -31,6 +31,12 @@ type AgentDefinition struct {
 	Tags          []string            `json:"tags,omitempty" yaml:"tags,omitempty"`
 	ContextGuard  *ContextGuardConfig `json:"contextGuard,omitempty" yaml:"contextGuard,omitempty"`
 	A2A           *A2AConfig          `json:"a2a,omitempty" yaml:"a2a,omitempty"`
+	// DisableMemory, when true, makes this agent not receive the long-term memory toolset nor instructions. nil (default) keeps memory enabled.
+	DisableMemory *bool               `json:"disableMemory,omitempty" yaml:"disableMemory,omitempty"`
+}
+
+func (a AgentDefinition) MemoryEnabled() bool {
+	return a.DisableMemory == nil || !*a.DisableMemory
 }
 
 // A2AConfig holds per-agent A2A (Agent-to-Agent) protocol settings.

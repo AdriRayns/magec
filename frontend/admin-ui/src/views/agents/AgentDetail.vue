@@ -16,6 +16,7 @@
         <DetailRow label="Model" :value="agent.llm?.model" />
         <DetailRow label="Context Guard" :value="contextGuardSummary" />
         <DetailRow label="A2A" :value="a2aSummary" />
+        <DetailRow label="Memory" :value="memorySummary" />
       </div>
 
       <div class="space-y-1.5 lg:border-l lg:border-piedra-700/20 lg:pl-6">
@@ -91,6 +92,8 @@ const contextGuardSummary = computed(() => {
 const a2aSummary = computed(() => {
   return props.agent.a2a?.enabled ? 'Enabled' : 'Disabled'
 })
+
+const memorySummary = computed(() => props.agent.disableMemory ? 'Disabled' : 'Enabled')
 
 const sttSummary = computed(() => {
   const t = props.agent.transcription

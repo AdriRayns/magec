@@ -3152,6 +3152,10 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "disableMemory": {
+                    "description": "DisableMemory, when true, makes this agent not receive the long-term memory toolset nor instructions. nil (default) keeps memory enabled.",
+                    "type": "boolean"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -3203,6 +3207,10 @@ const docTemplate = `{
         "store.BackendDefinition": {
             "type": "object",
             "properties": {
+                "api": {
+                    "description": "API selects the wire API for OpenAI-compatible backends: \"completions\"\n(default when empty) or \"responses\". Ignored by other backend types.",
+                    "type": "string"
+                },
                 "apiKey": {
                     "type": "string"
                 },

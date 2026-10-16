@@ -860,7 +860,8 @@ func buildSkillToolset(ctx context.Context, agentDef store.AgentDefinition, slug
 func buildToolsets(agentDef store.AgentDefinition, mcpServerMap map[string]store.MCPServer, memorySvc memory.Service) ([]tool.Toolset, error) {
 	var toolsets []tool.Toolset
 
-	if memorySvc != nil {
+	// Memory tools are optional per-agent via DisableMemory.
+	if memorySvc != nil && agentDef.MemoryEnabled() {
 		ts, err := toolsmemory.NewToolset(toolsmemory.ToolsetConfig{
 			MemoryService: memorySvc,
 			AppName:       agentDef.ID,
@@ -1000,7 +1001,8 @@ func buildInstruction(agentDef store.AgentDefinition, mcpServerMap map[string]st
 		instruction = agentDef.SystemPrompt
 	}
 
-	if memorySvc != nil {
+	// Memory instruction is optional per-agent via DisableMemory.
+	if memorySvc != nil && agentDef.MemoryEnabled() {
 		instruction += memoryInstruction
 	}
 

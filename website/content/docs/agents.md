@@ -78,6 +78,10 @@ Memory lets agents remember things between conversations. Without memory, every 
 
 Memory in Magec is configured **globally**: you set up memory providers once (under **Memory** in the Admin UI), and all agents automatically benefit from them. There's no per-agent memory selection.
 
+You can now opt-out per agent: the **Disable Memory** toggle on the Agent form removes the memory toolset and the `search_memory`/`save_to_memory` instructions for that agent. This is useful for stateless agents (e.g., public bots, ephemeral tools) that should not incur the cost of a memory query at the start of every conversation.
+
+### How it works
+
 ### How it works
 
 When memory providers are configured, every agent gets its own isolated memory space within those shared providers. Think of it like an apartment building: the building (Redis, PostgreSQL) is shared infrastructure, but each agent has its own unit with its own keys. No agent can access another's memories.
@@ -92,6 +96,12 @@ A simple FAQ bot and a personal assistant share the same memory infrastructure, 
 {{< /callout >}}
 
 For details on setting up memory providers (Redis for sessions, PostgreSQL + pgvector for long-term), see [Memory](/docs/memory/).
+
+### Agent field
+
+| Field | Description |
+|-------|-------------|
+| `disableMemory` | Boolean. When `true`, the agent does not receive the memory toolset nor the memory instruction. Default is `false` (memory enabled). |
 
 ## MCP Servers
 

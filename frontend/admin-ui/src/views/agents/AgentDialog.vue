@@ -201,14 +201,24 @@
         </div>
       </details>
 
-      <!-- A2A -->
-      <div class="border border-piedra-700/40 rounded-xl px-4 py-3">
+  <div class="border border-piedra-700/40 rounded-xl px-4 py-3">
         <div class="flex items-center justify-between">
           <div>
             <span class="text-xs font-medium text-arena-400">A2A Protocol</span>
             <p class="text-[10px] text-arena-500 mt-0.5">Expose this agent via the Agent-to-Agent protocol for external discovery and invocation</p>
           </div>
           <FormToggle v-model="form.a2aEnabled" />
+        </div>
+      </div>
+
+      <!-- Memory -->
+      <div class="border border-piedra-700/40 rounded-xl px-4 py-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-xs font-medium text-arena-400">Memory</span>
+            <p class="text-[10px] text-arena-500 mt-0.5">Disable memory tools and the memory query at the start of each conversation for this agent</p>
+          </div>
+          <FormToggle v-model="form.disableMemory" />
         </div>
       </div>
 
@@ -356,6 +366,7 @@ const form = reactive({
   contextGuardMaxTurns: '',
   contextGuardMaxTokens: '',
   a2aEnabled: false,
+  disableMemory: false,
 })
 
 function backendType(backendId) {
@@ -510,6 +521,7 @@ async function open(agent = null) {
   form.contextGuardMaxTurns = agent?.contextGuard?.maxTurns || ''
   form.contextGuardMaxTokens = agent?.contextGuard?.maxTokens || ''
   form.a2aEnabled = agent?.a2a?.enabled || false
+  form.disableMemory = !!agent?.disableMemory
   const gcfg = agent?.tts?.config?.gemini || {}
   showTtsAdvanced.value = !!(gcfg.languageCode || gcfg.temperature || gcfg.stylePrompt)
   await nextTick()
@@ -543,6 +555,7 @@ async function save() {
       maxTokens: parseInt(form.contextGuardMaxTokens) || 0,
     } : undefined,
     a2a: form.a2aEnabled ? { enabled: true } : undefined,
+    disableMemory: form.disableMemory || undefined,
   }
   try {
     if (isEdit.value) {

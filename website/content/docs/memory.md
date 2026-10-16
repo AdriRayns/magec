@@ -106,6 +106,8 @@ It's less useful for agents in flows that process data rather than interact with
 
 Memory is global, not per-agent. Once you create memory providers, all agents automatically use them. No additional configuration needed on the agent side.
 
+You can now opt-out per agent with the **Disable Memory** toggle in the Agent form. When disabled, the agent does not receive the memory toolset (`search_memory`/`save_to_memory`) nor the automatic memory instruction, and the agent will not be forced to query memory at the start of every conversation. The memory service itself remains global — only the per-agent usage is omitted.
+
 Each agent gets its own isolated space within the shared providers:
 
 - In **Redis**, session history is stored under keys that include the agent ID and session ID. Conversations with one agent never mix with another.
