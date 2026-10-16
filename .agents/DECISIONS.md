@@ -165,15 +165,12 @@ type Settings struct {
 }
 ```
 
-The `AgentDefinition.Memory.Session` and `AgentDefinition.Memory.LongTerm`
-fields are kept in the struct for backwards compatibility but are ignored. The UI no
-longer shows them in the agent form.
 
 **Do not**: Configure session/longterm memory at the individual agent level.
 If ADK improves the launcher to support multiple session services in the future,
 it can be decentralized.
 
-Amendment (2026-02-14): An opt-out per agent is now allowed via AgentDefinition.DisableMemory (*bool). Memory service configuration remains global. No per-agent provider selection is permitted.
+Amendment (2026-10-16): An opt-out per agent is now allowed via AgentDefinition.DisableMemory (*bool). Memory service configuration remains global. No per-agent provider selection is permitted.
 
 ---
 

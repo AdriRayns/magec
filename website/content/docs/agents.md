@@ -76,11 +76,9 @@ Each agent chooses its own backend and model independently. In a flow, you can h
 
 Memory lets agents remember things between conversations. Without memory, every conversation starts from scratch. With memory, agents can recall what you talked about yesterday, remember your preferences, and build context over time.
 
-Memory in Magec is configured **globally**: you set up memory providers once (under **Memory** in the Admin UI), and all agents automatically benefit from them. There's no per-agent memory selection.
+Memory in Magec is configured **globally**: you set up memory providers once (under **Memory** in the Admin UI), and all agents automatically benefit from them. There is no per-agent provider selection. By default agents use memory, but you can opt-out per agent via Disable Memory.
 
 You can now opt-out per agent: the **Disable Memory** toggle on the Agent form removes the memory toolset and the `search_memory`/`save_to_memory` instructions for that agent. This is useful for stateless agents (e.g., public bots, ephemeral tools) that should not incur the cost of a memory query at the start of every conversation.
-
-### How it works
 
 ### How it works
 
@@ -89,7 +87,7 @@ When memory providers are configured, every agent gets its own isolated memory s
 - **Session memory (Redis).** Each agent's conversation history is stored under unique identifiers, so conversations with one agent never bleed into another.
 - **Long-term memory (PostgreSQL + pgvector).** Each agent builds its own semantic memory over time. Memories saved by your home assistant stay separate from memories saved by your coding assistant.
 
-You don't need to configure anything on the agent itself. If a session memory provider exists, agents use it. If a long-term memory provider exists, agents get the `search_memory` and `save_to_memory` tools automatically.
+You normally do not need to configure anything on the agent itself. With memory providers configured, agents use them by default; you can opt-out per agent via Disable Memory. If a session memory provider exists, agents use it. If a long-term memory provider exists, agents get the `search_memory` and `save_to_memory` tools automatically.
 
 {{< callout type="info" >}}
 A simple FAQ bot and a personal assistant share the same memory infrastructure, but the personal assistant will naturally accumulate more memories because of how it interacts with users. The memory system is self-managing: agents decide what to remember based on their system prompt and the conversation context.

@@ -201,7 +201,7 @@
         </div>
       </details>
 
-  <div class="border border-piedra-700/40 rounded-xl px-4 py-3">
+      <div class="border border-piedra-700/40 rounded-xl px-4 py-3">
         <div class="flex items-center justify-between">
           <div>
             <span class="text-xs font-medium text-arena-400">A2A Protocol</span>

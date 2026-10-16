@@ -14,25 +14,25 @@ func generateID() string {
 
 // AgentDefinition represents a single agent's full configuration in the store.
 type AgentDefinition struct {
-	ID            string              `json:"id" yaml:"id"`
-	Name          string              `json:"name" yaml:"name"`
-	Description   string              `json:"description,omitempty" yaml:"description,omitempty"`
-	SystemPrompt  string              `json:"systemPrompt,omitempty" yaml:"systemPrompt,omitempty"`
-	OutputKey     string              `json:"outputKey,omitempty" yaml:"outputKey,omitempty"`
-	LLM           BackendRef          `json:"llm" yaml:"llm"`
-	Transcription BackendRef          `json:"transcription,omitempty" yaml:"transcription,omitempty"`
-	TTS           TTSRef              `json:"tts,omitempty" yaml:"tts,omitempty"`
-	MCPServers    []string            `json:"mcpServers,omitempty" yaml:"mcpServers,omitempty"`
-	Skills        []string            `json:"skills,omitempty" yaml:"skills,omitempty"`
+	ID            string     `json:"id" yaml:"id"`
+	Name          string     `json:"name" yaml:"name"`
+	Description   string     `json:"description,omitempty" yaml:"description,omitempty"`
+	SystemPrompt  string     `json:"systemPrompt,omitempty" yaml:"systemPrompt,omitempty"`
+	OutputKey     string     `json:"outputKey,omitempty" yaml:"outputKey,omitempty"`
+	LLM           BackendRef `json:"llm" yaml:"llm"`
+	Transcription BackendRef `json:"transcription,omitempty" yaml:"transcription,omitempty"`
+	TTS           TTSRef     `json:"tts,omitempty" yaml:"tts,omitempty"`
+	MCPServers    []string   `json:"mcpServers,omitempty" yaml:"mcpServers,omitempty"`
+	Skills        []string   `json:"skills,omitempty" yaml:"skills,omitempty"`
 	// Secrets lists the secret IDs this agent may expand in tool calls.
 	// AllowAllSecrets grants every secret in the store and ignores the list.
-	Secrets         []string `json:"secrets,omitempty" yaml:"secrets,omitempty"`
-	AllowAllSecrets bool     `json:"allowAllSecrets,omitempty" yaml:"allowAllSecrets,omitempty"`
-	Tags          []string            `json:"tags,omitempty" yaml:"tags,omitempty"`
-	ContextGuard  *ContextGuardConfig `json:"contextGuard,omitempty" yaml:"contextGuard,omitempty"`
-	A2A           *A2AConfig          `json:"a2a,omitempty" yaml:"a2a,omitempty"`
+	Secrets         []string            `json:"secrets,omitempty" yaml:"secrets,omitempty"`
+	AllowAllSecrets bool                `json:"allowAllSecrets,omitempty" yaml:"allowAllSecrets,omitempty"`
+	Tags            []string            `json:"tags,omitempty" yaml:"tags,omitempty"`
+	ContextGuard    *ContextGuardConfig `json:"contextGuard,omitempty" yaml:"contextGuard,omitempty"`
+	A2A             *A2AConfig          `json:"a2a,omitempty" yaml:"a2a,omitempty"`
 	// DisableMemory, when true, makes this agent not receive the long-term memory toolset nor instructions. nil (default) keeps memory enabled.
-	DisableMemory *bool               `json:"disableMemory,omitempty" yaml:"disableMemory,omitempty"`
+	DisableMemory *bool `json:"disableMemory,omitempty" yaml:"disableMemory,omitempty"`
 }
 
 func (a AgentDefinition) MemoryEnabled() bool {
@@ -47,9 +47,9 @@ type A2AConfig struct {
 
 // BackendDefinition represents a reusable AI backend.
 type BackendDefinition struct {
-	ID      string            `json:"id" yaml:"id"`
-	Name    string            `json:"name" yaml:"name"`
-	Type    string            `json:"type" yaml:"type"`
+	ID   string `json:"id" yaml:"id"`
+	Name string `json:"name" yaml:"name"`
+	Type string `json:"type" yaml:"type"`
 	// API selects the wire API for OpenAI-compatible backends: "completions"
 	// (default when empty) or "responses". Ignored by other backend types.
 	API     string            `json:"api,omitempty" yaml:"api,omitempty"`
