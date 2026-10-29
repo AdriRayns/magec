@@ -222,4 +222,3 @@ func (e *Executor) ensureSession(ctx context.Context, agentID, userID, sessionID
 	}
 	return nil
 }
-
