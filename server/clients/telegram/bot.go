@@ -6,6 +6,7 @@ package telegram
 import (
 	"bytes"
 	"context"
+	"errors"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -20,6 +21,7 @@ import (
 	"time"
 
 	"github.com/mymmrac/telego"
+	"github.com/mymmrac/telego/telegoapi"
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 	"google.golang.org/adk/v2/artifact"
@@ -830,19 +832,22 @@ func (c *Client) sendTextResponse(ctx *th.Context, chatID int64, threadID int, t
 			Text:            chunk,
 			ParseMode:       "HTML",
 		})
-		if err != nil && strings.Contains(err.Error(), "can't parse entities") {
-			// Formatting was rejected: deliver the same chunk as plain text
-			// rather than dropping it.
-			c.logger.Warn("Telegram rejected formatting, sending as plain text", "error", err)
-			_, err = ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
-				ChatID:          tu.ID(chatID),
-				MessageThreadID: threadID,
-				Text:            msgutil.TelegramHTMLToPlain(chunk),
-			})
-		}
 		if err != nil {
-			c.logger.Error("Failed to send message", "error", err)
-			break
+			var apiErr *telegoapi.Error
+			if errors.As(err, &apiErr) && apiErr.ErrorCode == 400 && strings.HasPrefix(apiErr.Description, "can't parse entities") {
+				// Formatting was rejected: deliver the same chunk as plain text
+				// rather than dropping it.
+				c.logger.Warn("Telegram rejected formatting, sending as plain text", "error", err)
+				_, err = ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
+					ChatID:          tu.ID(chatID),
+					MessageThreadID: threadID,
+					Text:            msgutil.TelegramHTMLToPlain(chunk),
+				})
+			}
+			if err != nil {
+				c.logger.Error("Failed to send message", "error", err)
+				break
+			}
 		}
 	}
 }
