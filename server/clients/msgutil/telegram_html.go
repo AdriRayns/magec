@@ -104,16 +104,16 @@ func (r *telegramRenderer) fragments(n ast.Node, maxLen int) []string {
 	case *ast.CodeBlock:
 		return splitCodeBlock("", r.lines(n), maxLen)
 	case *ast.List:
-		var out []string
+		var items []string
 		for i, item := 0, n.FirstChild(); item != nil; i, item = i+1, item.NextSibling() {
 			rendered := r.listItem(n, item, i, "", false)
 			if TelegramTextLength(rendered) <= maxLen {
-				out = append(out, rendered)
+				items = append(items, rendered)
 				continue
 			}
-			out = append(out, splitPlain(TelegramHTMLToPlain(rendered), maxLen)...)
+			items = append(items, splitPlain(TelegramHTMLToPlain(rendered), maxLen)...)
 		}
-		return out
+		return items
 	}
 	return splitPlain(TelegramHTMLToPlain(out), maxLen)
 }
