@@ -343,26 +343,36 @@ func splitCodeBlock(lang string, lines []string, maxLen int) []string {
 	return blocks
 }
 
-// splitPlain splits plain text into escaped HTML pieces of at most maxLen
-// characters, losing formatting. Only used for blocks too large to send whole.
+// splitPlain splits plain text into escaped HTML pieces of at most maxLen UTF-16
+// code units, losing formatting. Only used for blocks too large to send whole.
 func splitPlain(s string, maxLen int) []string {
 	limit := maxLen
 	for {
-		var out []string
-		fits := true
-		for _, piece := range SplitMessage(s, limit) {
-			if TelegramTextLength(escapeHTML(piece)) > maxLen {
-				fits = false
-				break
+		pieces := SplitMessage(s, limit)
+		if piecesFitUTF16(pieces, maxLen) || limit <= 1 {
+			out := make([]string, len(pieces))
+			for i, p := range pieces {
+				out[i] = escapeHTML(p)
 			}
-			out = append(out, escapeHTML(piece))
-		}
-		if fits || limit <= 1 {
 			return out
 		}
-		// SplitMessage counts runes; characters outside the BMP count twice.
+		// SplitMessage limits by runes, but Telegram counts UTF-16 code units.
+		// Characters outside the BMP (e.g. emoji) are 1 rune but 2 UTF-16 units,
+		// so a rune-based limit can overestimate the real length. We halve the
+		// rune limit until the UTF-16 length fits, or until we reach 1.
 		limit /= 2
 	}
+}
+
+// piecesFitUTF16 reports whether every piece, after HTML escaping, fits within
+// maxLen UTF-16 code units as Telegram measures it.
+func piecesFitUTF16(pieces []string, maxLen int) bool {
+	for _, p := range pieces {
+		if TelegramTextLength(escapeHTML(p)) > maxLen {
+			return false
+		}
+	}
+	return true
 }
 
 // link renders an anchor for URL schemes Telegram accepts, or just the label.
