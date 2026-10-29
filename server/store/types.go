@@ -511,6 +511,14 @@ type Settings struct {
 	// 0 means use default (15 minutes). This setting controls how long the
 	// server will wait for the client to read SSE data before timing out.
 	SSEWriteTimeoutMinutes int `json:"sseWriteTimeoutMinutes,omitempty" yaml:"sseWriteTimeoutMinutes,omitempty"`
+	// SSEIdleTimeoutMinutes is the Server-Sent Events idle timeout in minutes.
+	// 0 means use default (15 minutes). This setting controls how long the
+	// server will keep an SSE connection alive without data before closing it.
+	SSEIdleTimeoutMinutes int `json:"sseIdleTimeoutMinutes,omitempty" yaml:"sseIdleTimeoutMinutes,omitempty"`
+	// ServerWriteTimeoutMinutes is the HTTP server write timeout in minutes.
+	// 0 means use default (15 minutes). This setting applies to the user API
+	// server and affects how long the server waits for writes to complete.
+	ServerWriteTimeoutMinutes int `json:"serverWriteTimeoutMinutes,omitempty" yaml:"serverWriteTimeoutMinutes,omitempty"`
 	// Flows holds global settings for the Starlark code-node feature.
 	Flows FlowsSettings `json:"flows" yaml:"flows"`
 }
