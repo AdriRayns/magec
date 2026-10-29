@@ -373,7 +373,7 @@ func link(dest, label string) string {
 	lower := strings.ToLower(dest)
 	for _, scheme := range []string{"http://", "https://", "tg://", "mailto:"} {
 		if strings.HasPrefix(lower, scheme) {
-			return `<a href="` + strings.ReplaceAll(escapeHTML(dest), `"`, "&quot;") + `">` + label + "</a>"
+			return `<a href="` + escapeHTML(dest) + `">` + label + `</a>`
 		}
 	}
 	return label
