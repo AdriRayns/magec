@@ -162,6 +162,29 @@ func TestMarkdownToHTML_SplitsLongCodeBlock(t *testing.T) {
 	}
 }
 
+// Telegram counts the limit after entity parsing, so the <pre><code> wrapper
+// does not use any of it: a hard-cut line may fill the whole message.
+func TestMarkdownToHTML_SplitsSingleLongCodeLine(t *testing.T) {
+	line := strings.Repeat(`{"k":"a<b&c>d"},`, 700) // 11200 chars, no newlines
+	chunks := markdownToHTML("```json\n"+line+"\n```", msgutil.TelegramMaxMessageLength)
+	if len(chunks) < 3 {
+		t.Fatalf("expected at least 3 chunks, got %d", len(chunks))
+	}
+	var got strings.Builder
+	for i, c := range chunks {
+		if n := textLength(c); n > msgutil.TelegramMaxMessageLength {
+			t.Errorf("chunk %d has %d chars", i, n)
+		}
+		if !strings.HasPrefix(c, `<pre><code class="language-json">`) || !strings.HasSuffix(c, "</code></pre>") {
+			t.Errorf("chunk %d is not a complete code block: %.60q", i, c)
+		}
+		got.WriteString(htmlToPlain(c))
+	}
+	if got.String() != line {
+		t.Errorf("content lost across chunks: got %d chars, want %d", got.Len(), len(line))
+	}
+}
+
 func TestMarkdownToHTML_CountsUTF16(t *testing.T) {
 	md := strings.Repeat("🚀", 3000) // 3000 runes, 6000 UTF-16 code units
 	for i, c := range markdownToHTML(md, msgutil.TelegramMaxMessageLength) {
