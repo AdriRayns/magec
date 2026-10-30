@@ -6,9 +6,9 @@ package telegram
 import (
 	"bytes"
 	"context"
-	"errors"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -824,7 +824,7 @@ func (c *Client) sendTextResponse(ctx *th.Context, chatID int64, threadID int, t
 		}
 	}
 
-	chunks := msgutil.MarkdownToTelegramHTML(text, msgutil.TelegramMaxMessageLength)
+	chunks := markdownToHTML(text, msgutil.TelegramMaxMessageLength)
 	for _, chunk := range chunks {
 		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 			ChatID:          tu.ID(chatID),
@@ -841,7 +841,7 @@ func (c *Client) sendTextResponse(ctx *th.Context, chatID int64, threadID int, t
 				_, err = ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{
 					ChatID:          tu.ID(chatID),
 					MessageThreadID: threadID,
-					Text:            msgutil.TelegramHTMLToPlain(chunk),
+					Text:            htmlToPlain(chunk),
 				})
 			}
 			if err != nil {

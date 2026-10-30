@@ -1,23 +1,25 @@
 // SPDX-FileCopyrightText: 2026 Alby Hernández <hola@achetronic.com>
 // SPDX-License-Identifier: Apache-2.0
 
-package msgutil
+package telegram
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/achetronic/magec/server/clients/msgutil"
 )
 
 func renderOne(t *testing.T, md string) string {
 	t.Helper()
-	chunks := MarkdownToTelegramHTML(md, TelegramMaxMessageLength)
+	chunks := markdownToHTML(md, msgutil.TelegramMaxMessageLength)
 	if len(chunks) != 1 {
 		t.Fatalf("expected 1 chunk, got %d: %q", len(chunks), chunks)
 	}
 	return chunks[0]
 }
 
-func TestMarkdownToTelegramHTML_Inline(t *testing.T) {
+func TestMarkdownToHTML_Inline(t *testing.T) {
 	cases := []struct {
 		name string
 		md   string
@@ -45,7 +47,7 @@ func TestMarkdownToTelegramHTML_Inline(t *testing.T) {
 }
 
 // These inputs broke Telegram's legacy Markdown parse mode.
-func TestMarkdownToTelegramHTML_LegacyMarkdownBreakers(t *testing.T) {
+func TestMarkdownToHTML_LegacyMarkdownBreakers(t *testing.T) {
 	cases := []struct {
 		name string
 		md   string
@@ -66,7 +68,7 @@ func TestMarkdownToTelegramHTML_LegacyMarkdownBreakers(t *testing.T) {
 	}
 }
 
-func TestMarkdownToTelegramHTML_CodeBlock(t *testing.T) {
+func TestMarkdownToHTML_CodeBlock(t *testing.T) {
 	md := "Aplica esto:\n\n```hcl\nresource \"aws_s3_bucket\" \"state\" {\n  bucket = \"my_state_bucket\"\n}\n```\n\nY luego `terraform apply`."
 	want := "Aplica esto:\n\n" +
 		"<pre><code class=\"language-hcl\">resource \"aws_s3_bucket\" \"state\" {\n  bucket = \"my_state_bucket\"\n}</code></pre>\n\n" +
@@ -76,7 +78,7 @@ func TestMarkdownToTelegramHTML_CodeBlock(t *testing.T) {
 	}
 }
 
-func TestMarkdownToTelegramHTML_CodeBlockKeepsMarkup(t *testing.T) {
+func TestMarkdownToHTML_CodeBlockKeepsMarkup(t *testing.T) {
 	md := "```bash\nkubectl get pods -o jsonpath='{.items[*].metadata.name}' | grep <pod> && echo **ok**\n```"
 	want := "<pre><code class=\"language-bash\">kubectl get pods -o jsonpath='{.items[*].metadata.name}' | grep &lt;pod&gt; &amp;&amp; echo **ok**</code></pre>"
 	if got := renderOne(t, md); got != want {
@@ -84,13 +86,13 @@ func TestMarkdownToTelegramHTML_CodeBlockKeepsMarkup(t *testing.T) {
 	}
 }
 
-func TestMarkdownToTelegramHTML_CodeBlockWithoutLanguage(t *testing.T) {
+func TestMarkdownToHTML_CodeBlockWithoutLanguage(t *testing.T) {
 	if got, want := renderOne(t, "```\nls -la\n```"), "<pre>ls -la</pre>"; got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
 
-func TestMarkdownToTelegramHTML_Lists(t *testing.T) {
+func TestMarkdownToHTML_Lists(t *testing.T) {
 	md := "- uno con `code`\n- dos\n  - anidado\n\n1. primero\n2. segundo\n\n- [x] hecho\n- [ ] pendiente"
 	want := "• uno con <code>code</code>\n• dos\n    • anidado\n\n" +
 		"1. primero\n2. segundo\n\n" +
@@ -100,13 +102,13 @@ func TestMarkdownToTelegramHTML_Lists(t *testing.T) {
 	}
 }
 
-func TestMarkdownToTelegramHTML_Blockquote(t *testing.T) {
+func TestMarkdownToHTML_Blockquote(t *testing.T) {
 	if got, want := renderOne(t, "> **Nota:** cuidado"), "<blockquote><b>Nota:</b> cuidado</blockquote>"; got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
 
-func TestMarkdownToTelegramHTML_Table(t *testing.T) {
+func TestMarkdownToHTML_Table(t *testing.T) {
 	md := "| Recurso | Estado |\n|---|---|\n| bucket | ok |\n| vpc_main | **drift** |"
 	want := "<pre>Recurso  | Estado\n---------+-------\nbucket   | ok\nvpc_main | drift</pre>"
 	if got := renderOne(t, md); got != want {
@@ -114,22 +116,22 @@ func TestMarkdownToTelegramHTML_Table(t *testing.T) {
 	}
 }
 
-func TestMarkdownToTelegramHTML_Empty(t *testing.T) {
-	if chunks := MarkdownToTelegramHTML("  \n", TelegramMaxMessageLength); len(chunks) != 0 {
+func TestMarkdownToHTML_Empty(t *testing.T) {
+	if chunks := markdownToHTML("  \n", msgutil.TelegramMaxMessageLength); len(chunks) != 0 {
 		t.Errorf("expected no chunks, got %q", chunks)
 	}
 }
 
-func TestMarkdownToTelegramHTML_SplitsBetweenBlocks(t *testing.T) {
+func TestMarkdownToHTML_SplitsBetweenBlocks(t *testing.T) {
 	para := strings.Repeat("palabra ", 60) // 480 chars
 	md := strings.Repeat("**"+para+"**\n\n", 20)
 
-	chunks := MarkdownToTelegramHTML(md, 1000)
+	chunks := markdownToHTML(md, 1000)
 	if len(chunks) < 10 {
 		t.Fatalf("expected the text to be split, got %d chunks", len(chunks))
 	}
 	for i, c := range chunks {
-		if n := TelegramTextLength(c); n > 1000 {
+		if n := textLength(c); n > 1000 {
 			t.Errorf("chunk %d has %d chars", i, n)
 		}
 		if strings.Count(c, "<b>") != strings.Count(c, "</b>") {
@@ -138,7 +140,7 @@ func TestMarkdownToTelegramHTML_SplitsBetweenBlocks(t *testing.T) {
 	}
 }
 
-func TestMarkdownToTelegramHTML_SplitsLongCodeBlock(t *testing.T) {
+func TestMarkdownToHTML_SplitsLongCodeBlock(t *testing.T) {
 	var sb strings.Builder
 	sb.WriteString("```yaml\n")
 	for i := 0; i < 300; i++ {
@@ -146,12 +148,12 @@ func TestMarkdownToTelegramHTML_SplitsLongCodeBlock(t *testing.T) {
 	}
 	sb.WriteString("```")
 
-	chunks := MarkdownToTelegramHTML(sb.String(), 1000)
+	chunks := markdownToHTML(sb.String(), 1000)
 	if len(chunks) < 2 {
 		t.Fatalf("expected several chunks, got %d", len(chunks))
 	}
 	for i, c := range chunks {
-		if n := TelegramTextLength(c); n > 1000 {
+		if n := textLength(c); n > 1000 {
 			t.Errorf("chunk %d has %d chars", i, n)
 		}
 		if !strings.HasPrefix(c, `<pre><code class="language-yaml">`) || !strings.HasSuffix(c, "</code></pre>") {
@@ -160,18 +162,18 @@ func TestMarkdownToTelegramHTML_SplitsLongCodeBlock(t *testing.T) {
 	}
 }
 
-func TestMarkdownToTelegramHTML_CountsUTF16(t *testing.T) {
+func TestMarkdownToHTML_CountsUTF16(t *testing.T) {
 	md := strings.Repeat("🚀", 3000) // 3000 runes, 6000 UTF-16 code units
-	for i, c := range MarkdownToTelegramHTML(md, TelegramMaxMessageLength) {
-		if n := TelegramTextLength(c); n > TelegramMaxMessageLength {
+	for i, c := range markdownToHTML(md, msgutil.TelegramMaxMessageLength) {
+		if n := textLength(c); n > msgutil.TelegramMaxMessageLength {
 			t.Errorf("chunk %d has %d UTF-16 units", i, n)
 		}
 	}
 }
 
-func TestTelegramHTMLToPlain(t *testing.T) {
+func TestHTMLToPlain(t *testing.T) {
 	in := `<b>Ojo</b>: <code>a &lt; b &amp;&amp; c</code> <a href="https://x.io">link</a>`
-	if got, want := TelegramHTMLToPlain(in), "Ojo: a < b && c link"; got != want {
+	if got, want := htmlToPlain(in), "Ojo: a < b && c link"; got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }

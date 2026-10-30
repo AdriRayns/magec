@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Alby Hernández <hola@achetronic.com>
 // SPDX-License-Identifier: Apache-2.0
 
-package msgutil
+package telegram
 
 import (
 	"fmt"
@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"strings"
 	"unicode/utf16"
+
+	"github.com/achetronic/magec/server/clients/msgutil"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -18,8 +20,8 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
-// telegramMarkdown parses the CommonMark + GFM dialect LLMs usually write.
-var telegramMarkdown = goldmark.New(goldmark.WithExtensions(extension.GFM))
+// markdownParser parses the CommonMark + GFM dialect LLMs usually write.
+var markdownParser = goldmark.New(goldmark.WithExtensions(extension.GFM))
 
 // codeLanguagePattern restricts fenced code languages to safe class names.
 var codeLanguagePattern = regexp.MustCompile(`^[A-Za-z0-9_+#.-]+$`)
@@ -27,7 +29,7 @@ var codeLanguagePattern = regexp.MustCompile(`^[A-Za-z0-9_+#.-]+$`)
 // htmlTagPattern matches the tags emitted by the Telegram HTML renderer.
 var htmlTagPattern = regexp.MustCompile(`<[^>]*>`)
 
-// MarkdownToTelegramHTML converts agent Markdown into Telegram HTML
+// markdownToHTML converts agent Markdown into Telegram HTML
 // (parse_mode "HTML") split into messages of at most maxLen characters.
 //
 // Telegram's legacy Markdown parse mode rejects common LLM output such as
@@ -36,14 +38,14 @@ var htmlTagPattern = regexp.MustCompile(`<[^>]*>`)
 // not formatting avoids those errors while keeping code blocks, emphasis and
 // links. Splits happen between Markdown blocks, so every chunk is valid HTML
 // on its own; oversized code blocks are split by lines.
-func MarkdownToTelegramHTML(md string, maxLen int) []string {
+func markdownToHTML(md string, maxLen int) []string {
 	if maxLen <= 0 {
-		maxLen = TelegramMaxMessageLength
+		maxLen = msgutil.TelegramMaxMessageLength
 	}
 
 	src := []byte(md)
-	doc := telegramMarkdown.Parser().Parse(text.NewReader(src))
-	r := &telegramRenderer{src: src}
+	doc := markdownParser.Parser().Parse(text.NewReader(src))
+	r := &htmlRenderer{src: src}
 
 	var fragments []string
 	for n := doc.FirstChild(); n != nil; n = n.NextSibling() {
@@ -60,7 +62,7 @@ func MarkdownToTelegramHTML(md string, maxLen int) []string {
 			current = frag
 			continue
 		}
-		if TelegramTextLength(current+"\n\n"+frag) <= maxLen {
+		if textLength(current+"\n\n"+frag) <= maxLen {
 			current += "\n\n" + frag
 			continue
 		}
@@ -73,28 +75,28 @@ func MarkdownToTelegramHTML(md string, maxLen int) []string {
 	return chunks
 }
 
-// TelegramHTMLToPlain strips Telegram HTML tags and entities, returning the
+// htmlToPlain strips Telegram HTML tags and entities, returning the
 // text the user would see.
-func TelegramHTMLToPlain(s string) string {
+func htmlToPlain(s string) string {
 	return html.UnescapeString(htmlTagPattern.ReplaceAllString(s, ""))
 }
 
-// TelegramTextLength returns the length Telegram counts against its message
+// textLength returns the length Telegram counts against its message
 // limit: visible text (after entity parsing) in UTF-16 code units.
-func TelegramTextLength(s string) int {
-	return len(utf16.Encode([]rune(TelegramHTMLToPlain(s))))
+func textLength(s string) int {
+	return len(utf16.Encode([]rune(htmlToPlain(s))))
 }
 
-// telegramRenderer renders a goldmark AST into Telegram-supported HTML tags.
-type telegramRenderer struct {
+// htmlRenderer renders a goldmark AST into Telegram-supported HTML tags.
+type htmlRenderer struct {
 	src []byte
 }
 
 // fragments renders a top-level block. When the result does not fit in a
 // single message it is broken into smaller, independently valid fragments.
-func (r *telegramRenderer) fragments(n ast.Node, maxLen int) []string {
+func (r *htmlRenderer) fragments(n ast.Node, maxLen int) []string {
 	out := r.block(n, false)
-	if TelegramTextLength(out) <= maxLen {
+	if textLength(out) <= maxLen {
 		return []string{out}
 	}
 
@@ -107,20 +109,20 @@ func (r *telegramRenderer) fragments(n ast.Node, maxLen int) []string {
 		var items []string
 		for i, item := 0, n.FirstChild(); item != nil; i, item = i+1, item.NextSibling() {
 			rendered := r.listItem(n, item, i, "", false)
-			if TelegramTextLength(rendered) <= maxLen {
+			if textLength(rendered) <= maxLen {
 				items = append(items, rendered)
 				continue
 			}
-			items = append(items, splitPlain(TelegramHTMLToPlain(rendered), maxLen)...)
+			items = append(items, splitPlain(htmlToPlain(rendered), maxLen)...)
 		}
 		return items
 	}
-	return splitPlain(TelegramHTMLToPlain(out), maxLen)
+	return splitPlain(htmlToPlain(out), maxLen)
 }
 
 // block renders a block node. inQuote avoids nested blockquotes, which
 // Telegram does not support.
-func (r *telegramRenderer) block(n ast.Node, inQuote bool) string {
+func (r *htmlRenderer) block(n ast.Node, inQuote bool) string {
 	switch n := n.(type) {
 	case *ast.Paragraph, *ast.TextBlock:
 		return r.inlines(n)
@@ -133,7 +135,7 @@ func (r *telegramRenderer) block(n ast.Node, inQuote bool) string {
 	case *ast.CodeBlock:
 		return codeBlock("", strings.Join(r.lines(n), ""))
 	case *ast.HTMLBlock:
-		return escapeHTML(strings.TrimRight(strings.Join(r.lines(n), ""), "\n"))
+		return msgutil.EscapeHTML(strings.TrimRight(strings.Join(r.lines(n), ""), "\n"))
 	case *ast.Blockquote:
 		inner := r.children(n, "\n", true)
 		if inQuote {
@@ -149,7 +151,7 @@ func (r *telegramRenderer) block(n ast.Node, inQuote bool) string {
 }
 
 // children renders the block children of n joined by sep.
-func (r *telegramRenderer) children(n ast.Node, sep string, inQuote bool) string {
+func (r *htmlRenderer) children(n ast.Node, sep string, inQuote bool) string {
 	var parts []string
 	for c := n.FirstChild(); c != nil; c = c.NextSibling() {
 		if s := r.block(c, inQuote); s != "" {
@@ -161,7 +163,7 @@ func (r *telegramRenderer) children(n ast.Node, sep string, inQuote bool) string
 
 // list renders a list as bullet ("•") or numbered lines. Nested lists are
 // indented under their parent item.
-func (r *telegramRenderer) list(l *ast.List, indent string, inQuote bool) string {
+func (r *htmlRenderer) list(l *ast.List, indent string, inQuote bool) string {
 	var lines []string
 	for i, item := 0, l.FirstChild(); item != nil; i, item = i+1, item.NextSibling() {
 		lines = append(lines, r.listItem(l, item, i, indent, inQuote))
@@ -170,7 +172,7 @@ func (r *telegramRenderer) list(l *ast.List, indent string, inQuote bool) string
 }
 
 // listItem renders the i-th item of l with its marker.
-func (r *telegramRenderer) listItem(l *ast.List, item ast.Node, i int, indent string, inQuote bool) string {
+func (r *htmlRenderer) listItem(l *ast.List, item ast.Node, i int, indent string, inQuote bool) string {
 	marker := "• "
 	if l.IsOrdered() {
 		marker = fmt.Sprintf("%d. ", l.Start+i)
@@ -191,12 +193,12 @@ func (r *telegramRenderer) listItem(l *ast.List, item ast.Node, i int, indent st
 
 // table renders a GFM table as aligned plain text inside <pre>, since
 // Telegram has no table support.
-func (r *telegramRenderer) table(t *east.Table) string {
+func (r *htmlRenderer) table(t *east.Table) string {
 	var rows [][]string
 	for row := t.FirstChild(); row != nil; row = row.NextSibling() {
 		var cells []string
 		for cell := row.FirstChild(); cell != nil; cell = cell.NextSibling() {
-			cells = append(cells, TelegramHTMLToPlain(r.inlines(cell)))
+			cells = append(cells, htmlToPlain(r.inlines(cell)))
 		}
 		rows = append(rows, cells)
 	}
@@ -226,11 +228,11 @@ func (r *telegramRenderer) table(t *east.Table) string {
 			lines = append(lines, strings.Join(seps, "-+-"))
 		}
 	}
-	return "<pre>" + escapeHTML(strings.Join(lines, "\n")) + "</pre>"
+	return "<pre>" + msgutil.EscapeHTML(strings.Join(lines, "\n")) + "</pre>"
 }
 
 // inlines renders the inline children of n.
-func (r *telegramRenderer) inlines(n ast.Node) string {
+func (r *htmlRenderer) inlines(n ast.Node) string {
 	var sb strings.Builder
 	for c := n.FirstChild(); c != nil; c = c.NextSibling() {
 		sb.WriteString(r.inline(c))
@@ -238,20 +240,20 @@ func (r *telegramRenderer) inlines(n ast.Node) string {
 	return sb.String()
 }
 
-func (r *telegramRenderer) inline(n ast.Node) string {
+func (r *htmlRenderer) inline(n ast.Node) string {
 	switch n := n.(type) {
 	case *ast.Text:
 		value := n.Segment.Value(r.src)
 		if !n.IsRaw() {
 			value = util.ResolveEntityNames(util.ResolveNumericReferences(util.UnescapePunctuations(value)))
 		}
-		s := escapeHTML(string(value))
+		s := msgutil.EscapeHTML(string(value))
 		if n.SoftLineBreak() || n.HardLineBreak() {
 			s += "\n"
 		}
 		return s
 	case *ast.String:
-		return escapeHTML(string(n.Value))
+		return msgutil.EscapeHTML(string(n.Value))
 	case *ast.CodeSpan:
 		var sb strings.Builder
 		for c := n.FirstChild(); c != nil; c = c.NextSibling() {
@@ -260,7 +262,7 @@ func (r *telegramRenderer) inline(n ast.Node) string {
 			}
 		}
 		code := strings.ReplaceAll(sb.String(), "\n", " ")
-		return "<code>" + escapeHTML(code) + "</code>"
+		return "<code>" + msgutil.EscapeHTML(code) + "</code>"
 	case *ast.Emphasis:
 		tag := "i"
 		if n.Level >= 2 {
@@ -272,7 +274,7 @@ func (r *telegramRenderer) inline(n ast.Node) string {
 	case *ast.Link:
 		return link(string(n.Destination), r.inlines(n))
 	case *ast.AutoLink:
-		return link(string(n.URL(r.src)), escapeHTML(string(n.Label(r.src))))
+		return link(string(n.URL(r.src)), msgutil.EscapeHTML(string(n.Label(r.src))))
 	case *ast.Image:
 		return link(string(n.Destination), r.inlines(n))
 	case *ast.RawHTML:
@@ -281,7 +283,7 @@ func (r *telegramRenderer) inline(n ast.Node) string {
 			seg := n.Segments.At(i)
 			sb.Write(seg.Value(r.src))
 		}
-		return escapeHTML(sb.String())
+		return msgutil.EscapeHTML(sb.String())
 	case *east.TaskCheckBox:
 		if n.IsChecked {
 			return "☑ "
@@ -292,7 +294,7 @@ func (r *telegramRenderer) inline(n ast.Node) string {
 }
 
 // lines returns the raw source lines of a leaf block.
-func (r *telegramRenderer) lines(n ast.Node) []string {
+func (r *htmlRenderer) lines(n ast.Node) []string {
 	lines := n.Lines()
 	out := make([]string, 0, lines.Len())
 	for i := 0; i < lines.Len(); i++ {
@@ -302,7 +304,7 @@ func (r *telegramRenderer) lines(n ast.Node) []string {
 	return out
 }
 
-func (r *telegramRenderer) codeLanguage(n *ast.FencedCodeBlock) string {
+func (r *htmlRenderer) codeLanguage(n *ast.FencedCodeBlock) string {
 	lang := string(n.Language(r.src))
 	if !codeLanguagePattern.MatchString(lang) {
 		return ""
@@ -312,7 +314,7 @@ func (r *telegramRenderer) codeLanguage(n *ast.FencedCodeBlock) string {
 
 // codeBlock renders a <pre> block, tagging the language when known.
 func codeBlock(lang, code string) string {
-	code = escapeHTML(strings.TrimRight(code, "\n"))
+	code = msgutil.EscapeHTML(strings.TrimRight(code, "\n"))
 	if lang == "" {
 		return "<pre>" + code + "</pre>"
 	}
@@ -325,13 +327,13 @@ func splitCodeBlock(lang string, lines []string, maxLen int) []string {
 	var blocks []string
 	current := ""
 	for _, line := range lines {
-		if current != "" && TelegramTextLength(codeBlock(lang, current+line)) > maxLen {
+		if current != "" && textLength(codeBlock(lang, current+line)) > maxLen {
 			blocks = append(blocks, codeBlock(lang, current))
 			current = ""
 		}
-		if current == "" && TelegramTextLength(codeBlock(lang, line)) > maxLen {
+		if current == "" && textLength(codeBlock(lang, line)) > maxLen {
 			for _, piece := range splitPlain(line, maxLen) {
-				blocks = append(blocks, codeBlock(lang, TelegramHTMLToPlain(piece)))
+				blocks = append(blocks, codeBlock(lang, htmlToPlain(piece)))
 			}
 			continue
 		}
@@ -348,11 +350,11 @@ func splitCodeBlock(lang string, lines []string, maxLen int) []string {
 func splitPlain(s string, maxLen int) []string {
 	limit := maxLen
 	for {
-		pieces := SplitMessage(s, limit)
+		pieces := msgutil.SplitMessage(s, limit)
 		if piecesFitUTF16(pieces, maxLen) || limit <= 1 {
 			out := make([]string, len(pieces))
 			for i, p := range pieces {
-				out[i] = escapeHTML(p)
+				out[i] = msgutil.EscapeHTML(p)
 			}
 			return out
 		}
@@ -368,7 +370,7 @@ func splitPlain(s string, maxLen int) []string {
 // maxLen UTF-16 code units as Telegram measures it.
 func piecesFitUTF16(pieces []string, maxLen int) bool {
 	for _, p := range pieces {
-		if TelegramTextLength(escapeHTML(p)) > maxLen {
+		if textLength(msgutil.EscapeHTML(p)) > maxLen {
 			return false
 		}
 	}
@@ -378,12 +380,12 @@ func piecesFitUTF16(pieces []string, maxLen int) bool {
 // link renders an anchor for URL schemes Telegram accepts, or just the label.
 func link(dest, label string) string {
 	if label == "" {
-		label = escapeHTML(dest)
+		label = msgutil.EscapeHTML(dest)
 	}
 	lower := strings.ToLower(dest)
 	for _, scheme := range []string{"http://", "https://", "tg://", "mailto:"} {
 		if strings.HasPrefix(lower, scheme) {
-			return `<a href="` + escapeHTML(dest) + `">` + label + `</a>`
+			return `<a href="` + msgutil.EscapeHTML(dest) + `">` + label + `</a>`
 		}
 	}
 	return label
