@@ -684,11 +684,7 @@ func (c *Client) callAgentSSE(agentID, sessionID, message string, handler func(m
 		return fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	timeoutMinutes := 15
-	if c.clientDef.Config.Slack != nil && c.clientDef.Config.Slack.SSEClientTimeoutMinutes > 0 {
-		timeoutMinutes = c.clientDef.Config.Slack.SSEClientTimeoutMinutes
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutMinutes)*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), c.clientDef.Config.SSETimeout())
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "POST", c.agentURL+"/run_sse", bytes.NewReader(jsonBody))

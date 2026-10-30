@@ -4,6 +4,8 @@
 package store
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 )
 
@@ -156,6 +158,35 @@ type ClientConfig struct {
 	Slack    *SlackClientConfig    `json:"slack,omitempty" yaml:"slack,omitempty"`
 	Cron     *CronClientConfig     `json:"cron,omitempty" yaml:"cron,omitempty"`
 	Webhook  *WebhookClientConfig  `json:"webhook,omitempty" yaml:"webhook,omitempty"`
+}
+
+// DefaultSSETimeoutMinutes is how long an agent run may last when its client
+// does not set sseClientTimeoutMinutes.
+const DefaultSSETimeoutMinutes = 15
+
+// SSETimeout returns how long an agent run started by this client may last:
+// its sseClientTimeoutMinutes, or DefaultSSETimeoutMinutes when unset. Both
+// ends use it (the client's request context and the server's write deadlines
+// on /run_sse and webhook responses), so they cannot disagree. It is the only
+// place that applies the fallback; callers must not duplicate it.
+func (c ClientConfig) SSETimeout() time.Duration {
+	var minutes int
+	switch {
+	case c.Telegram != nil:
+		minutes = c.Telegram.SSEClientTimeoutMinutes
+	case c.Discord != nil:
+		minutes = c.Discord.SSEClientTimeoutMinutes
+	case c.Slack != nil:
+		minutes = c.Slack.SSEClientTimeoutMinutes
+	case c.Cron != nil:
+		minutes = c.Cron.SSEClientTimeoutMinutes
+	case c.Webhook != nil:
+		minutes = c.Webhook.SSEClientTimeoutMinutes
+	}
+	if minutes <= 0 {
+		minutes = DefaultSSETimeoutMinutes
+	}
+	return time.Duration(minutes) * time.Minute
 }
 
 // TelegramClientConfig holds Telegram bot settings for a client.
@@ -507,18 +538,6 @@ type Settings struct {
 	// temporary directory via Store.ResolveTemporaryDir, which is the only
 	// place that performs that fallback.
 	TemporaryDir string `json:"temporaryDir,omitempty" yaml:"temporaryDir,omitempty"`
-	// SSEWriteTimeoutMinutes is the Server-Sent Events write timeout in minutes.
-	// 0 means use default (15 minutes). This setting controls how long the
-	// server will wait for the client to read SSE data before timing out.
-	SSEWriteTimeoutMinutes int `json:"sseWriteTimeoutMinutes,omitempty" yaml:"sseWriteTimeoutMinutes,omitempty"`
-	// SSEIdleTimeoutMinutes is the Server-Sent Events idle timeout in minutes.
-	// 0 means use default (15 minutes). This setting controls how long the
-	// server will keep an SSE connection alive without data before closing it.
-	SSEIdleTimeoutMinutes int `json:"sseIdleTimeoutMinutes,omitempty" yaml:"sseIdleTimeoutMinutes,omitempty"`
-	// ServerWriteTimeoutMinutes is the HTTP server write timeout in minutes.
-	// 0 means use default (15 minutes). This setting applies to the user API
-	// server and affects how long the server waits for writes to complete.
-	ServerWriteTimeoutMinutes int `json:"serverWriteTimeoutMinutes,omitempty" yaml:"serverWriteTimeoutMinutes,omitempty"`
 	// Flows holds global settings for the Starlark code-node feature.
 	Flows FlowsSettings `json:"flows" yaml:"flows"`
 }

@@ -257,13 +257,10 @@ func startUserServer(
 	executor := clients.NewExecutor(dataStore, agentURL, slog.Default())
 
 	httpMux := http.NewServeMux()
-
-	settings := dataStore.Data().Settings
-	idleTimeoutMinutes := settings.SSEIdleTimeoutMinutes
-	if idleTimeoutMinutes <= 0 {
-		idleTimeoutMinutes = 15
-	}
-	idleGuarded := middleware.SSEIdleTimeout(agentRouter, time.Duration(idleTimeoutMinutes)*time.Minute)
+	idleGuarded := middleware.SSEIdleTimeout(agentRouter, func(r *http.Request) time.Duration {
+		cl, _ := dataStore.GetClient(r.Header.Get("X-Client-ID"))
+		return cl.Config.SSETimeout()
+	})
 	seeded := middleware.SessionEnsure(middleware.SessionStateSeed(idleGuarded, dataStore))
 	filtered := middleware.FlowResponseFilter(seeded, dataStore)
 
@@ -299,16 +296,11 @@ func startUserServer(
 	}
 
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
-
-	serverWriteTimeoutMinutes := settings.ServerWriteTimeoutMinutes
-	if serverWriteTimeoutMinutes <= 0 {
-		serverWriteTimeoutMinutes = 15
-	}
 	server := &http.Server{
 		Addr:         addr,
 		Handler:      middleware.AccessLog(middleware.CORS(middleware.ClientAuth(httpMux, dataStore))),
 		ReadTimeout:  30 * time.Second,
-		WriteTimeout: time.Duration(serverWriteTimeoutMinutes) * time.Minute,
+		WriteTimeout: 15 * time.Minute,
 		IdleTimeout:  60 * time.Second,
 	}
 

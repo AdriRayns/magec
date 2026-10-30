@@ -1043,11 +1043,7 @@ func (c *Client) callAgentSSE(msg telego.Message, agentID, sessionID, textPart s
 		return fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	timeoutMinutes := 15
-	if c.clientDef.Config.Telegram != nil && c.clientDef.Config.Telegram.SSEClientTimeoutMinutes > 0 {
-		timeoutMinutes = c.clientDef.Config.Telegram.SSEClientTimeoutMinutes
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutMinutes)*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), c.clientDef.Config.SSETimeout())
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "POST", c.agentURL+"/run_sse", bytes.NewReader(jsonBody))

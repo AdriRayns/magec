@@ -14,36 +14,18 @@
         <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-blue-500/10">
           <Icon name="infrastructure" size="md" class="text-blue-400" />
         </div>
-        <div class="flex-1 min-w-0 space-y-6">
-          <div>
-            <h4 class="text-[13px] font-medium text-arena-100">Temporary directory</h4>
-            <p class="text-xs text-arena-500 mt-0.5">
-              Where transient files are written. Leave empty to use the operating system default.
-            </p>
+        <div class="flex-1 min-w-0">
+          <h4 class="text-[13px] font-medium text-arena-100">Temporary directory</h4>
+          <p class="text-xs text-arena-500 mt-0.5">
+            Where transient files are written. Leave empty to use the operating system default.
+          </p>
 
-            <FormInput
-              v-model="temporaryDir"
-              placeholder="/app/data/temporary"
-              mono
-              input-class="mt-3"
-            />
-          </div>
-
-          <div class="pt-4">
-            <h4 class="text-[13px] font-medium text-arena-100">SSE Write Timeout</h4>
-            <p class="text-xs text-arena-500 mt-0.5">
-              Server-Sent Events write timeout in minutes. Higher values allow longer-running requests with slow models.
-              Default is 15 minutes.
-            </p>
-
-            <FormInput
-              v-model.number="sseTimeoutMinutes"
-              type="number"
-              min="1"
-              placeholder="15"
-              input-class="mt-3"
-            />
-          </div>
+          <FormInput
+            v-model="temporaryDir"
+            placeholder="/app/data/temporary"
+            mono
+            input-class="mt-3"
+          />
 
           <div class="flex items-center gap-3 mt-3">
             <button
@@ -76,24 +58,17 @@ import Icon from '../../components/Icon.vue'
 
 const toast = inject('toast')
 
-const initialTempDir = ref('')
-const initialSseTimeout = ref(15)
+const initial = ref('')
 const temporaryDir = ref('')
-const sseTimeoutMinutes = ref(15)
 const saving = ref(false)
 
-const dirty = computed(() => 
-  temporaryDir.value !== initialTempDir.value || 
-  sseTimeoutMinutes.value !== initialSseTimeout.value
-)
+const dirty = computed(() => temporaryDir.value !== initial.value)
 
 async function load() {
   try {
     const settings = await settingsApi.get()
-    initialTempDir.value = settings?.temporaryDir || ''
-    temporaryDir.value = initialTempDir.value
-    initialSseTimeout.value = settings?.sseWriteTimeoutMinutes || 15
-    sseTimeoutMinutes.value = initialSseTimeout.value
+    initial.value = settings?.temporaryDir || ''
+    temporaryDir.value = initial.value
   } catch (e) {
     toast.error('Failed to load settings: ' + e.message)
   }
@@ -103,15 +78,10 @@ async function onSave() {
   saving.value = true
   try {
     const current = (await settingsApi.get()) || {}
-    const next = { 
-      ...current, 
-      temporaryDir: temporaryDir.value.trim(),
-      sseWriteTimeoutMinutes: sseTimeoutMinutes.value > 0 ? sseTimeoutMinutes.value : 15
-    }
+    const next = { ...current, temporaryDir: temporaryDir.value.trim() }
     if (!next.temporaryDir) delete next.temporaryDir
     await settingsApi.update(next)
-    initialTempDir.value = next.temporaryDir || ''
-    initialSseTimeout.value = next.sseWriteTimeoutMinutes
+    initial.value = next.temporaryDir || ''
     toast.success('Runtime settings saved')
   } catch (e) {
     toast.error('Save failed: ' + e.message)
@@ -121,8 +91,7 @@ async function onSave() {
 }
 
 function onReset() {
-  temporaryDir.value = initialTempDir.value
-  sseTimeoutMinutes.value = initialSseTimeout.value
+  temporaryDir.value = initial.value
 }
 
 onMounted(load)
