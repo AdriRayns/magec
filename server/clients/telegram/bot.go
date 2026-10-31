@@ -833,8 +833,7 @@ func (c *Client) sendTextResponse(ctx *th.Context, chatID int64, threadID int, t
 			ParseMode:       "HTML",
 		})
 		if err != nil {
-			var apiErr *telegoapi.Error
-			if errors.As(err, &apiErr) && apiErr.ErrorCode == 400 && strings.HasPrefix(apiErr.Description, "can't parse entities") {
+			if isParseEntitiesError(err) {
 				// Formatting was rejected: deliver the same chunk as plain text
 				// rather than dropping it.
 				c.logger.Warn("Telegram rejected formatting, sending as plain text", "error", err)
@@ -850,6 +849,15 @@ func (c *Client) sendTextResponse(ctx *th.Context, chatID int64, threadID int, t
 			}
 		}
 	}
+}
+
+// isParseEntitiesError reports whether err is the Telegram API error that
+// rejects a message's formatting, so the caller can resend it as plain text.
+// Telegram prefixes the category ("Bad Request: can't parse entities: ..."),
+// so the check is a Contains on the description, not a prefix match.
+func isParseEntitiesError(err error) bool {
+	var apiErr *telegoapi.Error
+	return errors.As(err, &apiErr) && apiErr.ErrorCode == 400 && strings.Contains(apiErr.Description, "can't parse entities")
 }
 
 // getResponseMode returns the current response mode. If the user has set a
